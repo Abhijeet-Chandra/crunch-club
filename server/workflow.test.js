@@ -21,15 +21,15 @@ test('restaurant fulfillment, permissions, idempotency and verified online payme
  assert.equal((await call('/orders',{body,token:user,headers:{'idempotency-key':requestKey}})).data.id,o.id);
  assert.equal((await call('/orders/'+o.id)).status,404);
  const tracking={'x-tracking-token':o.trackingToken};assert.equal((await call('/orders/'+o.id,{headers:tracking})).data.status,'placed');
- assert.equal((await call('/orders',{body:{...body,customer:{...body.customer,pincode:'999999'}}})).status,400);
- assert.equal((await call('/orders',{body:{...body,expectedTotal:1}})).status,409);
+ assert.equal((await call('/orders',{token:user,body:{...body,customer:{...body.customer,pincode:'999999'}}})).status,400);
+ assert.equal((await call('/orders',{token:user,body:{...body,expectedTotal:1}})).status,409);
  assert.equal((await call('/admin/orders/'+o.id,{method:'PATCH',token:admin,body:{status:'delivered'}})).status,409);
  for(const status of ['accepted','preparing','ready'])assert.equal((await call('/admin/orders/'+o.id,{method:'PATCH',token:admin,body:{status}})).data.status,status);
  assert.equal((await call('/admin/orders/'+o.id,{method:'PATCH',token:admin,body:{status:'out_for_delivery'}})).status,400);
  await call('/admin/orders/'+o.id,{method:'PATCH',token:admin,body:{status:'out_for_delivery',rider:{name:'Test Rider',phone:'9999999999'}}});
  assert.equal((await call('/admin/orders/'+o.id,{method:'PATCH',token:admin,body:{status:'delivered'}})).status,400);
  assert.equal((await call('/admin/orders/'+o.id,{method:'PATCH',token:admin,body:{status:'delivered',cashCollected:true}})).data.paymentStatus,'paid');
- await call('/admin/menu/bucket',{method:'PATCH',token:admin,body:{available:false}});assert.equal((await call('/orders',{body})).status,400);await call('/admin/menu/bucket',{method:'PATCH',token:admin,body:{available:true,price:599}});
+ await call('/admin/menu/bucket',{method:'PATCH',token:admin,body:{available:false}});assert.equal((await call('/orders',{body,token:user})).status,400);await call('/admin/menu/bucket',{method:'PATCH',token:admin,body:{available:true,price:599}});
  const online=(await call('/orders',{body:{...body,paymentMethod:'razorpay'},token:user})).data;assert.equal(online.status,'awaiting_payment');
  const headers={'x-tracking-token':online.trackingToken},paymentId=online.razorpayOrderId.replace('order_','pay_');
  assert.equal((await call(`/payments/${online.id}/verify`,{headers,body:{razorpay_payment_id:paymentId,razorpay_signature:'a'.repeat(64)}})).status,400);
@@ -46,6 +46,7 @@ test('restaurant fulfillment, permissions, idempotency and verified online payme
  assert.equal((await call('/auth/reset',{body:{token:resetToken,password:'another-password'}})).status,400);
  assert.equal((await call('/auth/login',{body:{email:'guest@example.test',password:'new-customer-password'}})).status,200);
  assert.equal((await call('/auth/forgot',{body:{email:'missing@example.test'}})).data.message,recovery.data.message);
- const settings=(await call('/config')).data;await call('/admin/settings',{method:'PUT',token:admin,body:{...settings,isOpen:false}});assert.equal((await call('/orders',{body})).status,400);
+ assert.equal((await call('/orders',{body,token:user})).status,401);
+ const settings=(await call('/config')).data;await call('/admin/settings',{method:'PUT',token:admin,body:{...settings,isOpen:false}});assert.equal((await call('/orders',{body,token:admin})).status,400);
  }finally{child.kill();await fs.rm(temp,{recursive:true,force:true});}
 });

@@ -72,17 +72,17 @@ app.post('/api/auth/:action',asyncRoute(async(req,res)=>{
 app.get('/api/account/addresses',authenticate,(req,res)=>res.json(req.user.addresses||[]));
 app.put('/api/account/addresses',authenticate,asyncRoute(async(req,res)=>{if(!Array.isArray(req.body.addresses)||req.body.addresses.length>5)fail('Save at most five addresses.');const addresses=req.body.addresses.map(a=>{const address=text(a.address),pincode=text(a.pincode,6);if(!address||!/^\d{6}$/.test(pincode))fail('Enter a valid address and PIN code.');return {address,pincode,label:text(a.label,40)||'Home'};});if(persistent)await User.updateOne({_id:req.user._id},{$set:{addresses}});else req.user.addresses=addresses;res.json(addresses);}));
 const pendingRequests=new Map();
-app.post('/api/orders',asyncRoute(async(req,res)=>{
+app.post('/api/orders',authenticate,asyncRoute(async(req,res)=>{
  const {items,coupon='',mode,paymentMethod='cod'}=req.body;if(!['delivery','pickup'].includes(mode)||!['cod','razorpay'].includes(paymentMethod))fail('Choose a valid delivery and payment method.');
  const raw=req.body.customer||{},customer={name:text(raw.name,80),phone:text(raw.phone,20),address:text(raw.address),pincode:text(raw.pincode,6),notes:text(raw.notes,200)};
  if(!customer.name||!/^\+?[\d\s-]{10,15}$/.test(customer.phone)||(mode==='delivery'&&(!customer.address||!/^\d{6}$/.test(customer.pincode))))fail('Enter your name, valid phone number and full delivery address.');
  const key=req.headers['idempotency-key'];if(key&&(!/^[a-zA-Z0-9-]{16,100}$/.test(key)))fail('Invalid checkout request key.');
- if(key){const old=persistent?await Order.findOne({requestKey:key}).lean():orders.find(o=>o.requestKey===key);if(old)return res.json(publicOrder(old));if(pendingRequests.has(key))fail('This checkout is already processing. Please retry shortly.',409);pendingRequests.set(key,true);}
+ if(key){const old=persistent?await Order.findOne({requestKey:key}).lean():orders.find(o=>o.requestKey===key);if(old){if(old.userId!==String(req.user._id))fail('Checkout request belongs to another account.',409);return res.json(publicOrder(old));}if(pendingRequests.has(key))fail('This checkout is already processing. Please retry shortly.',409);pendingRequests.set(key,true);}
  try{
  const config=await getSettings();if(!config.isOpen)fail('The restaurant is currently closed.');if(mode==='delivery'&&!config.pincodes.includes(customer.pincode))fail('Delivery is unavailable at this PIN code. Choose pickup.');
  if(typeof coupon!=='string')fail('Invalid promo code.');let totals;try{totals=calculateOrder(items,coupon,mode,await getMenu());}catch(e){fail(e.message);}if(totals.subtotal<config.minimum)fail(`Minimum order is ₹${config.minimum}.`);if(req.body.expectedTotal!==undefined&&req.body.expectedTotal!==totals.total)fail('Menu prices changed. Refresh your bag and review the new total.',409);
  if(paymentMethod==='razorpay'&&!paymentsReady())fail('Online payments are not configured.',503);
- let userId=null;try{userId=jwt.verify((req.headers.authorization||'').replace('Bearer ',''),secret).id;}catch{}
+ const userId=String(req.user._id);
  const status=paymentMethod==='cod'?'placed':'awaiting_payment';const order={...totals,id:'CC-'+crypto.randomBytes(6).toString('hex').toUpperCase(),userId,customer,mode,createdAt:new Date(),status,paymentMethod,paymentStatus:paymentMethod==='cod'?'unpaid':'pending',trackingToken:crypto.randomBytes(32).toString('hex'),...(key?{requestKey:key}:{}),history:[{status,at:new Date()}]};
  if(paymentMethod==='razorpay'){const remote=await razorpay('/orders',{amount:order.total*100,currency:'INR',receipt:order.id});order.razorpayOrderId=remote.id;}
  if(persistent)await Order.create(order);else orders.push(order);res.status(201).json(publicOrder(order));

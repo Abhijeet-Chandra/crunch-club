@@ -16,10 +16,12 @@ test('API authenticates accounts, protects history, and validates checkout',asyn
   assert.equal((await request('/auth/login',{...credentials,password:'incorrect-password'})).status,401);
   const login=await request('/auth/login',credentials);assert.equal(login.status,200);
   const body={items:[{id:'bucket',quantity:1,price:1}],coupon:'CRUNCH20',mode:'delivery',customer:{name:'Test Customer',phone:'9999999999',address:'Demo Street',pincode:'110001'}};
+  assert.equal((await request('/orders',body)).status,401);
+  assert.equal((await request('/orders',body,'invalid-token')).status,401);
   const order=await request('/orders',body,login.data.token);assert.equal(order.status,201);assert.equal(order.data.total,478);
   const history=await request('/orders',null,login.data.token);assert.equal(history.data.length,1);assert.equal(history.data[0].id,order.data.id);
   const other=await request('/auth/register',{...credentials,email:'other@example.test'});assert.equal((await request('/orders',null,other.data.token)).data.length,0);
-  assert.equal((await request('/orders',{...body,customer:{name:'Missing details'}})).status,400);
-  assert.equal((await request('/orders',{...body,items:[{id:'bucket',quantity:-1}]})).status,400);
+  assert.equal((await request('/orders',{...body,customer:{name:'Missing details'}},login.data.token)).status,400);
+  assert.equal((await request('/orders',{...body,items:[{id:'bucket',quantity:-1}]},login.data.token)).status,400);
  }finally{server.kill();}
 });
