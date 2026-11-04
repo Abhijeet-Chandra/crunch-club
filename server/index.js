@@ -20,7 +20,7 @@ const Product=mongoose.model('Product',new mongoose.Schema({id:{type:String,uniq
 const Setting=mongoose.model('Setting',new mongoose.Schema({id:{type:String,unique:true},isOpen:Boolean,pincodes:[String],minimum:Number,pickupAddress:String}));
 const users=[],orders=[];let products=menu.map(p=>({...p,available:true}));
 let settings={id:'restaurant',isOpen:true,pincodes:['110001'],minimum:99,pickupAddress:'Connaught Place, New Delhi'};
-if(persistent){await Promise.all([User.init(),Order.init(),Product.init(),Setting.init()]);await Product.bulkWrite(products.map(p=>({updateOne:{filter:{id:p.id},update:{$setOnInsert:p},upsert:true}})));await Setting.updateOne({id:'restaurant'},{$setOnInsert:settings},{upsert:true});}
+if(persistent){await Promise.all([User.init(),Order.init(),Product.init(),Setting.init()]);await Product.bulkWrite(products.map(p=>({updateOne:{filter:{id:p.id},update:{$setOnInsert:p},upsert:true}})));await Product.bulkWrite(products.map(p=>({updateOne:{filter:{id:p.id},update:{$set:{image:p.image}}}})));await Setting.updateOne({id:'restaurant'},{$setOnInsert:settings},{upsert:true});}
 const getMenu=()=>persistent?Product.find().lean():Promise.resolve(products);
 const getSettings=()=>persistent?Setting.findOne({id:'restaurant'}).lean():Promise.resolve(settings);
 const findOrder=id=>persistent?Order.findOne({id}).lean():Promise.resolve(orders.find(o=>o.id===id));

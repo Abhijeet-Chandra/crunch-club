@@ -9,26 +9,26 @@ export const menu = [
  {id:'shake',name:'Chocolate Dream Shake',description:'Rich chocolate, creamy ice cream & a little happiness. 300 ml.',category:'Drinks',price:159,image:'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=900&q=85',tag:'SWEET FINISH',calories:420,spicy:false}
 ];
 const additions = [
- ['fire-bucket','Firecracker Bucket','8 spicy chicken pieces for a table that likes it hot.','Buckets',749,'bucket',true],
- ['duo-bucket','Just Us Two Bucket','4 crispy chicken pieces and 2 portions of golden fries.','Buckets',499,'bucket'],
- ['party-bucket','Party Crunch Bucket','12 original chicken pieces for your next get-together.','Buckets',1099,'bucket'],
- ['pepper-burger','Pepper Crunch Burger','Crispy chicken, pepper mayo and crunchy lettuce.','Burgers',219,'burger',true],
- ['double-burger','Double Trouble Burger','Two crispy chicken fillets, cheese and signature sauce.','Burgers',329,'burger'],
- ['bbq-burger','Smoky BBQ Burger','Crispy chicken layered with smoky barbecue sauce and onions.','Burgers',249,'burger'],
- ['cheese-burger','Cheese Lover’s Crunch','Crispy chicken, melting cheese and creamy mayo.','Burgers',239,'burger'],
- ['bbq-wings','BBQ Glazed Wings','6 wings coated in a sweet and smoky barbecue glaze.','Chicken',279,'wings'],
- ['pepper-tenders','Pepper Chicken Tenders','4 chicken strips tossed in a peppery spice blend.','Chicken',249,'tenders',true],
- ['wing-platter','Wing Night Platter','12 wings with smoky barbecue and spicy sauces.','Chicken',499,'wings',true],
- ['solo-combo','Solo Crunch Meal','A signature burger, regular fries and a 330 ml cola.','Combos',349,'burger'],
- ['duo-combo','Burger Buddies Combo','2 signature burgers, 2 regular fries and 2 colas.','Combos',649,'burger'],
- ['wings-combo','Wings & Fries Combo','6 smoky wings, regular fries and a 330 ml cola.','Combos',399,'wings',true],
- ['tender-combo','Tender Loving Meal','4 golden tenders, regular fries and a 330 ml cola.','Combos',379,'tenders'],
- ['family-combo','Family Crunch Spread','8 chicken pieces, 4 burgers, 2 large fries and 4 colas.','Combos',1599,'feast'],
- ['classic-fries','Classic Golden Fries','A generous portion of crisp fries with a pinch of salt.','Sides',99,'fries'],
- ['peri-fries','Peri-Peri Fries','Golden fries tossed in a zesty, fiery peri-peri seasoning.','Sides',129,'fries',true],
- ['double-shake','Chocolate Shake Duo','Two 300 ml chocolate shakes for a sweet shared finish.','Drinks',289,'shake']
+ ['fire-bucket','Firecracker Bucket','8 spicy chicken pieces for a table that likes it hot.','Buckets',749,'fire-bucket',true],
+ ['duo-bucket','Just Us Two Bucket','4 crispy chicken pieces and 2 portions of golden fries.','Buckets',499,'duo-bucket'],
+ ['party-bucket','Party Crunch Bucket','12 original chicken pieces for your next get-together.','Buckets',1099,'party-bucket'],
+ ['pepper-burger','Pepper Crunch Burger','Crispy chicken, pepper mayo and crunchy lettuce.','Burgers',219,'pepper-burger',true],
+ ['double-burger','Double Trouble Burger','Two crispy chicken fillets, cheese and signature sauce.','Burgers',329,'double-burger'],
+ ['bbq-burger','Smoky BBQ Burger','Crispy chicken layered with smoky barbecue sauce and onions.','Burgers',249,'bbq-burger'],
+ ['cheese-burger','Cheese Lover’s Crunch','Crispy chicken, melting cheese and creamy mayo.','Burgers',239,'cheese-burger'],
+ ['bbq-wings','BBQ Glazed Wings','6 wings coated in a sweet and smoky barbecue glaze.','Chicken',279,'bbq-wings'],
+ ['pepper-tenders','Pepper Chicken Tenders','4 chicken strips tossed in a peppery spice blend.','Chicken',249,'pepper-tenders',true],
+ ['wing-platter','Wing Night Platter','12 wings with smoky barbecue and spicy sauces.','Chicken',499,'wing-platter',true],
+ ['solo-combo','Solo Crunch Meal','A signature burger, regular fries and a 330 ml cola.','Combos',349,'solo-combo'],
+ ['duo-combo','Burger Buddies Combo','2 signature burgers, 2 regular fries and 2 colas.','Combos',649,'duo-combo'],
+ ['wings-combo','Wings & Fries Combo','6 smoky wings, regular fries and a 330 ml cola.','Combos',399,'wings-combo',true],
+ ['tender-combo','Tender Loving Meal','4 golden tenders, regular fries and a 330 ml cola.','Combos',379,'tender-combo'],
+ ['family-combo','Family Crunch Spread','8 chicken pieces, 4 burgers, 2 large fries and 4 colas.','Combos',1599,'family-combo'],
+ ['classic-fries','Classic Golden Fries','A generous portion of crisp fries with a pinch of salt.','Sides',99,'classic-fries'],
+ ['peri-fries','Peri-Peri Fries','Golden fries tossed in a zesty, fiery peri-peri seasoning.','Sides',129,'peri-fries',true],
+ ['double-shake','Chocolate Shake Duo','Two 300 ml chocolate shakes for a sweet shared finish.','Drinks',289,'double-shake']
 ];
-for(const [id,name,description,category,price,photo,spicy=false] of additions){menu.push({id,name,description,category,price,image:menu.find(p=>p.id===photo).image,tag:category==='Sides'?'VEGETARIAN':'NEW',spicy});}
+for(const [id,name,description,category,price,photo,spicy=false] of additions){menu.push({id,name,description,category,price,image:`/assets/menu/${photo}.png`,tag:category==='Sides'?'VEGETARIAN':'NEW',spicy});}
 export function calculateOrder(items, coupon='', mode='delivery', catalog=menu) {
  if(!Array.isArray(items)||!items.length||items.length>50) throw new Error('Add something delicious to your cart first.');
  const ids=new Set();
